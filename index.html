@@ -66,8 +66,9 @@
 
       <div class="company-info">
         <strong>ETS NIASS & FRÈRE</strong>
-        <div>VENTE ET LOCATION DE VÉHICULES ET RÉPARATION</div>
-        <div class="small">Tél: 77 47047 42 — Niary Tali, Dakar, Sénégal</div>
+        <div>VENTE, LOCATION ET RÉPARATION DE VÉHICULES</div>
+        <div class="small">Tél: 77 470 47 42 </div>
+                <div class="small">Rond point Niary Tali, en face Brioche Dorée</div>
         <div class="small">www.etsniassetfrere.com</div>
       </div>
 
@@ -270,8 +271,9 @@
       // Company info top-right under logo
       doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('ETS NIASS & FRÈRE', pageWidth - rightMargin - 10, 140, {align:'right'});
       doc.setFontSize(9); doc.setFont('helvetica','normal');
-      doc.text('VENTE ET LOCATION DE VÉHICULES ET RÉPARATION', pageWidth - rightMargin - 10, 154, {align:'right'});
-      doc.text('77 47047 42 — NIARY TALI DAKAR — www.etsniassetfrere.com', pageWidth - rightMargin - 10, 168, {align:'right'});
+      doc.text('VENTE, LOCATION ET RÉPARATION DE VÉHICULES', pageWidth - rightMargin - 10, 154, {align:'right'});
+      doc.text('77 47047 42', pageWidth - rightMargin - 10, 168, {align:'right'});
+      doc.text('Rond point Niary Tali, en face Brioche Dorée', pageWidth - rightMargin - 10, 182, {align:'right'});
 
       // Client info top-left
       doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
@@ -367,7 +369,7 @@
         if(act==='delete'){ if(confirm('Supprimer ce devis ?')){ list.splice(i,1); saveDevisList(list); } }
         if(act==='edit'){ populateForm(list[i]); }
         if(act==='pdf'){ generatePDF(list[i]); }
-      }));
+      })); 
     }
 
     function populateForm(d){
