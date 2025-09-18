@@ -337,23 +337,23 @@
       const logoSize = 80; doc.addImage(img, 'JPEG', pageWidth - rightMargin - logoSize, 40, logoSize, logoSize);
 
       // Company info top-right under logo
-      doc.setFontSize(10); doc.setFont('helvetica','bold'); doc.text('ETS NIASS & FRÈRE', pageWidth - rightMargin - 10, 140, {align:'right'});
-      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.text('ETS NIASS & FRÈRE', pageWidth - rightMargin - 10, 140, {align:'right'});
+      doc.setFontSize(10); doc.setFont('helvetica','normal');
       doc.text('VENTE, LOCATION ET RÉPARATION DE VÉHICULES', pageWidth - rightMargin - 10, 154, {align:'right'});
       doc.text('77 47047 42 / 33 825 32 42', pageWidth - rightMargin - 10, 168, {align:'right'});
       doc.text('Rond point Niary Tali, en face Brioche Dorée', pageWidth - rightMargin - 10, 182, {align:'right'});
 
       // Client info top-left
-      doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
-      doc.setFontSize(10); doc.setFont('helvetica','normal');
+      doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
+      doc.setFontSize(14); doc.setFont('helvetica','normal');
       doc.text((dataObj.type||'') + ' : ' + (dataObj.nom||''), leftMargin, 110);
       doc.text('Tél: ' + (dataObj.tel||''), leftMargin, 125);
-      doc.text('Marque: ' + (dataObj.marque||'') + ' — Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
+      doc.text('Info Véhicule: ' + (dataObj.marque||'') + '  ' + (dataObj.matricule||''), leftMargin, 140);
 
       // Work description
       doc.setDrawColor(220); doc.setLineWidth(0.5);
       doc.text('Description:', leftMargin, 170);
-      doc.setFontSize(9);
+      doc.setFontSize(11);
       const split = doc.splitTextToSize(dataObj.travail || '-', pageWidth - leftMargin - rightMargin);
       doc.text(split, leftMargin, 185);
 
@@ -367,24 +367,24 @@
       ];
       doc.autoTable({
         startY, head:[columns.map(c=>c.header)], body: dataObj.items.map(it=>[it.des, it.qty, Number(it.pu).toFixed(0), Number(it.qty*it.pu||0).toFixed(0)]),
-        styles:{fontSize:9}, theme:'striped', headStyles:{fillColor:[15,74,200]}, margin:{left:leftMargin,right:rightMargin}
+        styles:{fontSize:13}, theme:'striped', headStyles:{fillColor:[15,74,200]}, margin:{left:leftMargin,right:rightMargin}
       });
 
       // Totals under table
       const finalY = doc.lastAutoTable.finalY + 14;
-      doc.setFontSize(10);
+      doc.setFontSize(15);
       doc.text('Total HT : ' + dataObj.totalHT.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY, {align:'right'});
       doc.text('TVA ('+dataObj.tva+'%) : ' + dataObj.montantTVA.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 14, {align:'right'});
       doc.setFont('helvetica','bold'); doc.text('Total TTC : ' + dataObj.totalTTC.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 32, {align:'right'});
 
       // Montant en lettre
       const enLettre = numberToWordsFr(Math.round(dataObj.totalTTC));
-      doc.setFont('helvetica','normal'); doc.setFontSize(9);
+      doc.setFont('helvetica','normal'); doc.setFontSize(10);
       doc.text('Arrêté le présent devis à la somme de ' + enLettre + ' FRANCS CFA.', leftMargin, finalY + 70);
 
       // Footer signature line
       doc.setDrawColor(200); doc.line(leftMargin, doc.internal.pageSize.getHeight() - 120, pageWidth - rightMargin, doc.internal.pageSize.getHeight() - 120);
-      doc.setFontSize(9); doc.text('Signature client', leftMargin, doc.internal.pageSize.getHeight() - 100);
+      doc.setFontSize(14); doc.text('Signature client', leftMargin, doc.internal.pageSize.getHeight() - 100);
 
       // Save / open
       doc.save((dataObj.numDevis||'devis') + '.pdf');
@@ -466,10 +466,143 @@
 const now = new Date();
 const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
 document.getElementById('currentDate').textContent = now.toLocaleDateString('fr-FR', options);
+    
+    // Charger les devis depuis le localStorage
+function loadSavedDevis() {
+    const savedDevis = localStorage.getItem('devisHistory');
+    if (savedDevis) {
+        const devisList = JSON.parse(savedDevis);
+        const historyTable = document.getElementById('devisHistory');
+        
+        // Vider le tableau avant d'ajouter les éléments
+        historyTable.innerHTML = '';
+        
+        // Ajouter chaque devis au tableau
+        devisList.forEach(devis => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.devisNumber}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.clientName}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.vehicleBrand}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.totalTTC.toFixed(2)} FCFA</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <button class="edit-devis text-blue-600 hover:text-blue-800 mr-2">
+                        <i data-feather="edit"></i>
+                    </button>
+                    <button class="delete-devis text-red-600 hover:text-red-800 mr-2">
+                        <i data-feather="trash-2"></i>
+                    </button>
+                    <button class="regenerate-devis text-green-600 hover:text-green-800">
+                        <i data-feather="file-text"></i>
+                    </button>
+                </td>
+            `;
+            historyTable.appendChild(newRow);
+        });
+        
+        feather.replace();
+    }
+}
+    
+    // Add to history
+function addToHistory(devisNumber, clientName, vehicleBrand, totalTTC) {
+    // Récupérer les devis existants
+    const existingDevis = localStorage.getItem('devisHistory');
+    let devisList = existingDevis ? JSON.parse(existingDevis) : [];
+    
+    // Ajouter le nouveau devis
+    devisList.push({
+        devisNumber,
+        clientName,
+        vehicleBrand,
+        totalTTC,
+        date: new Date().toISOString()
+    });
+    
+    // Sauvegarder dans le localStorage
+    localStorage.setItem('devisHistory', JSON.stringify(devisList));
+    
+    // Mettre à jour l'affichage
+    loadSavedDevis();
+}
+    // Gérer les actions sur les devis (éditer, supprimer, regénérer)
+function setupDevisActions() {
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.edit-devis')) {
+            const row = e.target.closest('tr');
+            const devisNumber = row.cells[0].textContent;
+            editDevis(devisNumber);
+        }
+        
+        if (e.target.closest('.delete-devis')) {
+            const row = e.target.closest('tr');
+            const devisNumber = row.cells[0].textContent;
+            deleteDevis(devisNumber);
+        }
+        
+        if (e.target.closest('.regenerate-devis')) {
+            const row = e.target.closest('tr');
+            const devisNumber = row.cells[0].textContent;
+            regenerateDevis(devisNumber);
+        }
+    });
+}
+
+// Éditer un devis
+function editDevis(devisNumber) {
+    const savedDevis = localStorage.getItem('devisHistory');
+    if (savedDevis) {
+        const devisList = JSON.parse(savedDevis);
+        const devis = devisList.find(d => d.devisNumber === devisNumber);
+        
+        if (devis) {
+            // Pré-remplir le formulaire avec les données du devis
+            document.getElementById('devisNumber').value = devis.devisNumber;
+            document.getElementById('clientName').value = devis.clientName;
+            document.getElementById('vehicleBrand').value = devis.vehicleBrand;
+            
+            // Faire défiler jusqu'au formulaire
+            document.querySelector('.client-info').scrollIntoView({ behavior: 'smooth' });
+            
+            alert(`Devis ${devisNumber} chargé. Complétez les autres champs et générez à nouveau.`);
+        }
+    }
+}
+
+// Supprimer un devis
+function deleteDevis(devisNumber) {
+    if (confirm(`Êtes-vous sûr de vouloir supprimer le devis ${devisNumber} ?`)) {
+        const savedDevis = localStorage.getItem('devisHistory');
+        if (savedDevis) {
+            let devisList = JSON.parse(savedDevis);
+            devisList = devisList.filter(d => d.devisNumber !== devisNumber);
+            
+            localStorage.setItem('devisHistory', JSON.stringify(devisList));
+            loadSavedDevis();
+            
+            alert(`Devis ${devisNumber} supprimé.`);
+        }
+    }
+}
+
+// Regénérer un devis
+function regenerateDevis(devisNumber) {
+    const savedDevis = localStorage.getItem('devisHistory');
+    if (savedDevis) {
+        const devisList = JSON.parse(savedDevis);
+        const devis = devisList.find(d => d.devisNumber === devisNumber);
+        
+        if (devis) {
+            // Ici, vous pouvez appeler votre fonction generatePDF avec les données du devis
+            alert(`Regénération du devis ${devisNumber} pour ${devis.clientName}`);
+            // generatePDF(devis); // À adapter selon votre implémentation
+        }
+    }
+}
+    
     // init
     addRow(); renderDevisList();
+    
   </script>
 </body>
 </html>
-
-
