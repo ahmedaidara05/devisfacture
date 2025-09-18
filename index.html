@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Générateur de Devis - ETS NIASSE ET FRERE</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        :root {
+            --primary-blue: #1a4b8c;
+            --light-blue: #e6f0ff;
+            --accent-red: #e63946;
+            --dark-text: #333;
+            --light-gray: #f5f5f5;
+            --border-radius: 8px;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            color: var(--dark-text);
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+        
+        header {
+            grid-column: 1 / -1;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: var(--primary-blue);
+            margin-bottom: 10px;
+        }
+        
+        .form-section, .devis-list {
+            background: white;
+            padding: 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--primary-blue);
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+        }
+        
+        .radio-group {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        
+        .items-table th {
+            background-color: var(--primary-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .items-table input {
+            width: 100%;
+            padding: 8px;
+        }
+        
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: var(--primary-blue);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #0d3a73;
+        }
+        
+        .btn-danger {
+            background: var(--accent-red);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c1121f;
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .add-item-btn {
+            margin: 10px 0;
+        }
+        
+        .totals {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .ttc {
+            font-weight: bold;
+            font-size: 18px;
+            border-top: 2px solid var(--primary-blue);
+            padding-top: 10px;
+        }
+        
+        .devis-item {
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 15px;
+            margin-bottom: 15px;
+            background: white;
+        }
+        
+        .devis-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .devis-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .devis-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        
+        @media (max-width: 900px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Générateur de Devis - ETS NIASSE ET FRERE</h1>
+        <p>Vente et Location de Véhicules et Réparation</p>
+    </header>
+    
+    <div class="container">
+        <section class="form-section">
+            <h2>Nouveau Devis</h2>
+            
+            <div class="form-group">
+                <label>Type de client</label>
+                <div class="radio-group">
+                    <div class="radio-option">
+                        <input type="radio" id="client-type-particulier" name="clientType" value="particulier" checked>
+                        <label for="client-type-particulier">Client</label>
+                    </div>
+                    <div class="radio-option">
+                        <input type="radio" id="client-type-entreprise" name="clientType" value="entreprise">
+                        <label for="client-type-entreprise">Entreprise</label>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label id="nom-label" for="nom">Nom du client</label>
+                <input type="text" id="nom" placeholder="Entrez le nom">
+            </div>
+            
+            <div class="form-group">
+                <label for="telephone">Numéro de téléphone</label>
+                <input type="text" id="telephone" placeholder="Ex: +221 77 123 45 67">
+            </div>
+            
+            <div class="form-group">
+                <label for="marque">Marque du véhicule</label>
+                <input type="text" id="marque" placeholder="Ex: Toyota, Renault, etc.">
+            </div>
+            
+            <div class="form-group">
+                <label for="matricule">Matricule</label>
+                <input type="text" id="matricule" placeholder="Ex: DK-1234-AB">
+            </div>
+            
+            <div class="form-group">
+                <label for="devis-num">Numéro du devis</label>
+                <input type="text" id="devis-num" placeholder="Ex: DEV-2023-001">
+            </div>
+            
+            <h3>Prestations</h3>
+            
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Désignation</th>
+                        <th width="100">Quantité</th>
+                        <th width="120">Prix unitaire</th>
+                        <th width="120">Montant</th>
+                        <th width="50"></th>
+                    </tr>
+                </thead>
+                <tbody id="items-body">
+                    <tr>
+                        <td><input type="text" class="designation" placeholder="Description de la prestation"></td>
+                        <td><input type="number" class="quantite" value="1" min="1"></td>
+                        <td><input type="number" class="prix" step="0.01" placeholder="0.00"></td>
+                        <td class="montant">0.00</td>
+                        <td><button class="btn btn-danger remove-row">X</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <button id="add-item" class="btn btn-secondary add-item-btn">+ Ajouter une ligne</button>
+            
+            <div class="form-group">
+                <label for="tva">TVA (%)</label>
+                <input type="number" id="tva" value="0" min="0" step="0.1">
+            </div>
+            
+            <div class="totals">
+                <div class="total-row">
+                    <span>Total HT:</span>
+                    <span id="total-ht">0.00</span>
+                </div>
+                <div class="total-row">
+                    <span>TVA:</span>
+                    <span id="tva-montant">0.00</span>
+                </div>
+                <div class="total-row ttc">
+                    <span>Total TTC:</span>
+                    <span id="total-ttc">0.00</span>
+                </div>
+            </div>
+            
+            <button id="generate-pdf" class="btn btn-primary">Générer le PDF</button>
+        </section>
+        
+        <section class="devis-list">
+            <h2>Liste des devis</h2>
+            <div id="devis-container">
+                <p>Aucun devis généré pour le moment.</p>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // Initialisation des variables globales
+        window.jsPDF = window.jspdf.jsPDF;
+        const devisList = JSON.parse(localStorage.getItem('devisList')) || [];
+        
+        // Éléments DOM
+        const clientTypeRadios = document.querySelectorAll('input[name="clientType"]');
+        const nomLabel = document.getElementById('nom-label');
+        const itemsBody = document.getElementById('items-body');
+        const addItemBtn = document.getElementById('add-item');
+        const tvaInput = document.getElementById('tva');
+        const totalHtElement = document.getElementById('total-ht');
+        const tvaMontantElement = document.getElementById('tva-montant');
+        const totalTtcElement = document.getElementById('total-ttc');
+        const generatePdfBtn = document.getElementById('generate-pdf');
+        const devisContainer = document.getElementById('devis-container');
+        
+        // Changement du type de client
+        clientTypeRadios.forEach(radio => {
+            radio.addEventListener('change', () => {
+                nomLabel.textContent = radio.value === 'particulier' 
+                    ? 'Nom du client' 
+                    : 'Nom de l\'entreprise';
+            });
+        });
+        
+        // Ajouter une ligne au tableau des prestations
+        addItemBtn.addEventListener('click', () => {
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td><input type="text" class="designation" placeholder="Description de la prestation"></td>
+                <td><input type="number" class="quantite" value="1" min="1"></td>
+                <td><input type="number" class="prix" step="0.01" placeholder="0.00"></td>
+                <td class="montant">0.00</td>
+                <td><button class="btn btn-danger remove-row">X</button></td>
+            `;
+            itemsBody.appendChild(newRow);
+            
+            // Ajouter les écouteurs d'événements à la nouvelle ligne
+            attachEventListenersToRow(newRow);
+        });
+        
+        // Calculer le montant d'une ligne
+        function calculateRowTotal(row) {
+            const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
+            const prix = parseFloat(row.querySelector('.prix').value) || 0;
+            const montant = quantite * prix;
+            row.querySelector('.montant').textContent = montant.toFixed(2);
+            return montant;
+        }
+        
+        // Calculer le total général
+        function calculateTotals() {
+            let totalHt = 0;
+            const rows = itemsBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                totalHt += calculateRowTotal(row);
+            });
+            
+            const tvaPercentage = parseFloat(tvaInput.value) || 0;
+            const tvaMontant = totalHt * (tvaPercentage / 100);
+            const totalTtc = totalHt + tvaMontant;
+            
+            totalHtElement.textContent = totalHt.toFixed(2);
+            tvaMontantElement.textContent = tvaMontant.toFixed(2);
+            totalTtcElement.textContent = totalTtc.toFixed(2);
+            
+            return { totalHt, tvaMontant, totalTtc };
+        }
+        
+        // Attacher les écouteurs d'événements à une ligne
+        function attachEventListenersToRow(row) {
+            const quantiteInput = row.querySelector('.quantite');
+            const prixInput = row.querySelector('.prix');
+            const removeBtn = row.querySelector('.remove-row');
+            
+            quantiteInput.addEventListener('input', calculateTotals);
+            prixInput.addEventListener('input', calculateTotals);
+            
+            removeBtn.addEventListener('click', () => {
+                if (itemsBody.querySelectorAll('tr').length > 1) {
+                    row.remove();
+                    calculateTotals();
+                }
+            });
+        }
+        
+        // Initialiser les écouteurs d'événements pour les lignes existantes
+        document.querySelectorAll('#items-body tr').forEach(row => {
+            attachEventListenersToRow(row);
+        });
+        
+        // Écouter les changements de TVA
+        tvaInput.addEventListener('input', calculateTotals);
+        
+        // Générer le PDF
+        generatePdfBtn.addEventListener('click', () => {
+            // Récupérer les valeurs du formulaire
+            const clientType = document.querySelector('input[name="clientType"]:checked').value;
+            const nom = document.getElementById('nom').value;
+            const telephone = document.getElementById('telephone').value;
+            const marque = document.getElementById('marque').value;
+            const matricule = document.getElementById('matricule').value;
+            const devisNum = document.getElementById('devis-num').value;
+            const tvaPercentage = parseFloat(tvaInput.value) || 0;
+            
+            const totals = calculateTotals();
+            
+            // Valider les données
+            if (!nom || !telephone || !marque || !matricule || !devisNum) {
+                alert('Veuillez remplir tous les champs obligatoires.');
+                return;
+            }
+            
+            // Créer l'objet devis
+            const devis = {
+                id: Date.now(),
+                clientType,
+                nom,
+                telephone,
+                marque,
+                matricule,
+                devisNum,
+                tva: tvaPercentage,
+                items: [],
+                totalHt: totals.totalHt,
+                tvaMontant: totals.tvaMontant,
+                totalTtc: totals.totalTtc,
+                date: new Date().toLocaleDateString('fr-FR')
+            };
+            
+            // Récupérer les items
+            const rows = itemsBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const designation = row.querySelector('.designation').value;
+                const quantite = parseFloat(row.querySelector('.quantite').value) || 0;
+                const prix = parseFloat(row.querySelector('.prix').value) || 0;
+                
+                if (designation && quantite && prix) {
+                    devis.items.push({
+                        designation,
+                        quantite,
+                        prix,
+                        montant: quantite * prix
+                    });
+                }
+            });
+            
+            // Ajouter à la liste des devis
+            devisList.push(devis);
+            localStorage.setItem('devisList', JSON.stringify(devisList));
+            
+            // Générer le PDF
+            generatePDF(devis);
+            
+            // Mettre à jour l'interface
+            updateDevisList();
+            
+            // Réinitialiser le formulaire (optionnel)
+            // document.querySelector('form').reset();
+        });
+        
+        // Générer le PDF avec jsPDF
+      function generatePDF(devis) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Dimensions de la page
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const contentWidth = pageWidth - (margin * 2);
+    
+    // Couleurs
+    const primaryBlue = '#1a4b8c';
+    const lightBlue = '#e6f0ff';
+    const grey = '#f5f5f5';
+    const darkGrey = '#666666';
+    
+    // Configuration de police
+    doc.setFont("helvetica");
+    
+    // En-tête amélioré
+    doc.setFillColor(26, 75, 140);
+    doc.rect(0, 0, pageWidth, 60, 'F');
+    
+    // Logo et nom d'entreprise
+    doc.setFontSize(16);
+    doc.setTextColor(255, 255, 255);
+    doc.setFont(undefined, 'bold');
+    doc.text('ETS NIASSE ET FRERE', margin, 25);
+    
+    // Informations de contact
+    doc.setFontSize(9);
+    doc.setFont(undefined, 'normal');
+    doc.text('77 47047 42 NIARY TALI DAKAR SENEGAL', margin, 35);
+    doc.text('WWW.ETSNIASSETFRERE.COM', margin, 40);
+    
+    // Numéro de devis aligné à droite
+    doc.setFontSize(14);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Devis n°${devis.devisNum}`, pageWidth - margin, 25, { align: 'right' });
+    
+    // Date du devis
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    const today = new Date().toLocaleDateString('fr-FR');
+    doc.text(`Date: ${today}`, pageWidth - margin, 35, { align: 'right' });
+    
+    // Séparateur sous l'en-tête
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, 65, pageWidth - margin, 65);
+    
+    // Informations du client
+    let yPosition = 75;
+    doc.setFontSize(12);
+    doc.setTextColor(primaryBlue);
+    doc.setFont(undefined, 'bold');
+    doc.text('INFORMATIONS CLIENT', margin, yPosition);
+    
+    yPosition += 10;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
+    doc.text(`${devis.clientType === 'particulier' ? 'Client' : 'Entreprise'}: ${devis.nom}`, margin, yPosition);
+    yPosition += 7;
+    doc.text(`Téléphone: ${devis.telephone}`, margin, yPosition);
+    
+    // Informations du véhicule
+    yPosition += 12;
+    doc.setFontSize(12);
+    doc.setTextColor(primaryBlue);
+    doc.setFont(undefined, 'bold');
+    doc.text('INFORMATIONS VÉHICULE', margin, yPosition);
+    
+    yPosition += 10;
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.setFont(undefined, 'normal');
+    doc.text(`Marque: ${devis.marque}`, margin, yPosition);
+    yPosition += 7;
+    doc.text(`Matricule: ${devis.matricule}`, margin, yPosition);
+    
+    // Tableau des prestations
+    yPosition += 15;
+    const tableTop = yPosition;
+    
+    // En-tête du tableau avec fond coloré
+    doc.setFillColor(primaryBlue);
+    doc.roundedRect(margin, tableTop, contentWidth, 10, 2, 2, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text('Désignation', margin + 5, tableTop + 7);
+    doc.text('Quantité', margin + contentWidth - 75, tableTop + 7, { align: 'center' });
+    doc.text('Prix unitaire', margin + contentWidth - 45, tableTop + 7, { align: 'right' });
+    doc.text('Montant', margin + contentWidth - 15, tableTop + 7, { align: 'right' });
+    
+    // Lignes du tableau
+    yPosition = tableTop + 10;
+    devis.items.forEach((item, index) => {
+        // Alternance de couleurs de fond pour les lignes
+        if (index % 2 === 0) {
+            doc.setFillColor(grey);
+            doc.rect(margin, yPosition, contentWidth, 10, 'F');
+        }
+        
+        // Ligne séparatrice
+        doc.setDrawColor(220, 220, 220);
+        doc.line(margin, yPosition, margin + contentWidth, yPosition);
+        
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(9);
+        doc.setFont(undefined, 'normal');
+        
+        // Gestion du texte trop long avec ellipse
+        let designation = item.designation;
+        if (doc.getStringUnitWidth(designation) * 9 > (contentWidth - 90)) {
+            while (doc.getStringUnitWidth(designation + '...') * 9 > (contentWidth - 90) && designation.length > 0) {
+                designation = designation.substring(0, designation.length - 1);
+            }
+            designation += '...';
+        }
+        
+        doc.text(designation, margin + 5, yPosition + 7);
+        doc.text(item.quantite.toString(), margin + contentWidth - 75, yPosition + 7, { align: 'center' });
+        doc.text(`${item.prix.toFixed(2)} €`, margin + contentWidth - 45, yPosition + 7, { align: 'right' });
+        doc.text(`${item.montant.toFixed(2)} €`, margin + contentWidth - 15, yPosition + 7, { align: 'right' });
+        
+        yPosition += 10;
+    });
+    
+    // Ligne de séparation avant les totaux
+    doc.setDrawColor(150, 150, 150);
+    doc.line(margin, yPosition, margin + contentWidth, yPosition);
+    yPosition += 5;
+    
+    // Totaux
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Sous-total HT:', margin + contentWidth - 70, yPosition + 7, { align: 'right' });
+    doc.text(`${devis.totalHt.toFixed(2)} €`, margin + contentWidth - 15, yPosition + 7, { align: 'right' });
+    yPosition += 10;
+    
+    doc.text(`TVA (${devis.tva}%):`, margin + contentWidth - 70, yPosition + 7, { align: 'right' });
+    doc.text(`${devis.tvaMontant.toFixed(2)} €`, margin + contentWidth - 15, yPosition + 7, { align: 'right' });
+    yPosition += 10;
+    
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'bold');
+    doc.setTextColor(primaryBlue);
+    doc.text('Total TTC:', margin + contentWidth - 70, yPosition + 7, { align: 'right' });
+    doc.text(`${devis.totalTtc.toFixed(2)} €`, margin + contentWidth - 15, yPosition + 7, { align: 'right' });
+    
+    // Mention en lettres
+    yPosition += 15;
+    doc.setFontSize(9);
+    doc.setTextColor(darkGrey);
+    doc.setFont(undefined, 'italic');
+    doc.text(`Arrêtée le présent devis à la somme de ${numberToWords(devis.totalTtc)} FRANCS CFA.`, margin, yPosition);
+    
+    // Conditions de validité
+    yPosition += 10;
+    doc.setFontSize(8);
+    doc.setTextColor(darkGrey);
+    doc.setFont(undefined, 'normal');
+    doc.text('Ce devis est valable 1 mois à compter de sa date d\'émission', margin, yPosition);
+    
+    // Date et signature sans cadre
+    yPosition += 20;
+    doc.setFontSize(9);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Fait à Dakar, le ' + today, margin, yPosition);
+    yPosition += 15;
+    doc.text('Signature', margin, yPosition);
+    doc.setDrawColor(150, 150, 150);
+    doc.line(margin, yPosition + 2, margin + 60, yPosition + 2);
+    
+    // Enregistrer le PDF
+    doc.save(`devis-${devis.devisNum}.pdf`);
+}
+        
+        // Convertir un nombre en lettres (version simplifiée)
+        function numberToWords(num) {
+            // Cette fonction est une version simplifiée pour la démo
+            // Une implémentation complète serait beaucoup plus longue
+            const units = ['', 'un', 'deux', 'trois', 'quatre', 'cinq', 'six', 'sept', 'huit', 'neuf'];
+            const teens = ['dix', 'onze', 'douze', 'treize', 'quatorze', 'quinze', 'seize', 'dix-sept', 'dix-huit', 'dix-neuf'];
+            const tens = ['', 'dix', 'vingt', 'trente', 'quarante', 'cinquante', 'soixante', 'soixante-dix', 'quatre-vingt', 'quatre-vingt-dix'];
+            
+            // Pour cette démo, nous retournons une version simplifiée
+            return "***";
+        }
+        
+        // Mettre à jour la liste des devis
+        function updateDevisList() {
+            if (devisList.length === 0) {
+                devisContainer.innerHTML = '<p>Aucun devis généré pour le moment.</p>';
+                return;
+            }
+            
+            devisContainer.innerHTML = '';
+            
+            devisList.forEach(devis => {
+                const devisElement = document.createElement('div');
+                devisElement.className = 'devis-item';
+                devisElement.innerHTML = `
+                    <div class="devis-header">
+                        <h3>Devis n°${devis.devisNum}</h3>
+                        <div class="devis-actions">
+                            <button class="btn btn-secondary view-devis" data-id="${devis.id}">Voir</button>
+                            <button class="btn btn-primary pdf-devis" data-id="${devis.id}">PDF</button>
+                            <button class="btn btn-danger delete-devis" data-id="${devis.id}">Supprimer</button>
+                        </div>
+                    </div>
+                    <div class="devis-details">
+                        <div>
+                            <strong>Client:</strong> ${devis.nom}
+                        </div>
+                        <div>
+                            <strong>Date:</strong> ${devis.date}
+                        </div>
+                        <div>
+                            <strong>Véhicule:</strong> ${devis.marque} (${devis.matricule})
+                        </div>
+                        <div>
+                            <strong>Total:</strong> ${devis.totalTtc.toFixed(2)} €
+                        </div>
+                    </div>
+                `;
+                
+                devisContainer.appendChild(devisElement);
+            });
+            
+            // Ajouter les écouteurs d'événements pour les boutons
+            document.querySelectorAll('.delete-devis').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.dataset.id);
+                    deleteDevis(id);
+                });
+            });
+            
+            document.querySelectorAll('.pdf-devis').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = parseInt(e.target.dataset.id);
+                    const devis = devisList.find(d => d.id === id);
+                    if (devis) generatePDF(devis);
+                });
+            });
+        }
+        
+        // Supprimer un devis
+        function deleteDevis(id) {
+            const index = devisList.findIndex(devis => devis.id === id);
+            if (index !== -1) {
+                devisList.splice(index, 1);
+                localStorage.setItem('devisList', JSON.stringify(devisList));
+                updateDevisList();
+            }
+        }
+        
+        // Initialiser l'interface
+        updateDevisList();
+    </script>
+</body>
+</html>
