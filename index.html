@@ -384,7 +384,7 @@
 
       // Footer signature line
       doc.setDrawColor(200); doc.line(leftMargin, doc.internal.pageSize.getHeight() - 120, pageWidth - rightMargin, doc.internal.pageSize.getHeight() - 120);
-      doc.setFontSize(9); doc.text('Signature client : _______________________', leftMargin, doc.internal.pageSize.getHeight() - 100);
+      doc.setFontSize(9); doc.text('Signature client', leftMargin, doc.internal.pageSize.getHeight() - 100);
 
       // Save / open
       doc.save((dataObj.numDevis||'devis') + '.pdf');
@@ -471,3 +471,5 @@ document.getElementById('currentDate').textContent = now.toLocaleDateString('fr-
   </script>
 </body>
 </html>
+
+
