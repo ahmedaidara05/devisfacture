@@ -334,7 +334,7 @@
       // Header: logo at top-right (square)
       const img = new Image(); img.crossOrigin = 'anonymous'; img.src = 'https://i.postimg.cc/3JBCwW1J/5913292883186796968-1.jpg';
       await new Promise(res=>{ img.onload = res; img.onerror = res; });
-      const logoSize = 80; doc.addImage(img, 'JPEG', pageWidth - rightMargin - logoSize, 40, logoSize, logoSize);
+      const logoSize = 110; doc.addImage(img, 'JPEG', pageWidth - rightMargin - logoSize, 40, logoSize, logoSize);
 
       // Company info top-right under logo
       doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.text('ETS NIASS & FRÈRE', pageWidth - rightMargin - 10, 140, {align:'right'});
