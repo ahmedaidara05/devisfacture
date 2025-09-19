@@ -519,7 +519,12 @@ doc.text('Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
       doc.setFont('helvetica','normal'); doc.setFontSize(10);
       doc.text('Arrêté le présent devis à la somme de ' + enLettre + ' FRANCS CFA.', leftMargin, finalY + 70);
 
-     
+     // Infos entreprise en bas centré
+const footerText = "ETS NIASS & FRÈRE - Siège social: Dakar, Sénégal - Tél: +221 77 470 47 42 | NINEA: 004328763D0 - RC: SN-DKR-2023-AB-789";
+doc.setFontSize(9);
+doc.setFont('helvetica', 'italic');
+doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 30, { align: 'center' });
+
 
       // S ave / open
       doc.save((dataObj.numDevis||'devis') + '.pdf');
