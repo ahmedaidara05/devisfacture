@@ -1,0 +1,27 @@
+{
+  "name": "Générateur de Devis - ETS NIASS & FRÈRE",
+  "short_name": "Devis ",
+  "description": "Application de génération de devis pour ETS NIASS & FRÈRE",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6fbff",
+  "theme_color": "#0f4ac8",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://i.postimg.cc/85RsLkrb/LOGO.png",
+      "sizes": "120x120",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.postimg.cc/85RsLkrb/LOGO.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.postimg.cc/85RsLkrb/LOGO.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
