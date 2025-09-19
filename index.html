@@ -144,21 +144,23 @@
 
     <form id="devisForm">
       <div class="left">
-        <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
-          <div>
-                      <h1 style="margin:0;font-size:20px"> ETS NIASS & FRÈRE</h1>
-
-            <label>Type</label>
-            <div class="radio-group">
-              <label><input type="radio" name="typeClient" value="Client" checked> Client</label>
-              <label><input type="radio" name="typeClient" value="Entreprise"> Entreprise</label>
-            </div>
-          </div>
-          <div style="min-width:200px">
-            <label>Numéro Devis</label>
-            <input type="text" id="numDevis" placeholder=" " required>
-          </div>
-        </div>
+       <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
+  <div>
+    <label>Type</label>
+    <div class="radio-group">
+      <label><input type="radio" name="typeClient" value="Client" checked> Client</label>
+      <label><input type="radio" name="typeClient" value="Entreprise"> Entreprise</label>
+    </div>
+  </div>
+  <div style="min-width:200px">
+    <label>Numéro Devis</label>
+    <input type="text" id="numDevis" placeholder=" " required>
+  </div>
+  <div style="min-width:200px">
+    <label>Date du devis</label>
+    <input type="date" id="dateDevis">
+  </div>
+</div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
           <div>
@@ -344,7 +346,14 @@
       doc.text('VENTE, LOCATION ET RÉPARATION DE VÉHICULES', pageWidth - rightMargin - 10, 154, {align:'right'});
       doc.text('77 47047 42 / 33 825 32 42', pageWidth - rightMargin - 10, 168, {align:'right'});
       doc.text('Rond point Niary Tali, en face Brioche Dorée', pageWidth - rightMargin - 10, 182, {align:'right'});
-
+// Date en haut à gauche
+if(dataObj.dateDevis) {
+  const date = new Date(dataObj.dateDevis);
+  const formattedDate = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  doc.setFontSize(11);
+  doc.setFont('helvetica','normal');
+  doc.text('Date: ' + formattedDate, leftMargin, 70);
+}
    // Client info top-left - Version simplifiée
 doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
 doc.setFontSize(14); doc.setFont('helvetica','normal');
@@ -384,9 +393,7 @@ doc.text('Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
       doc.setFont('helvetica','normal'); doc.setFontSize(10);
       doc.text('Arrêté le présent devis à la somme de ' + enLettre + ' FRANCS CFA.', leftMargin, finalY + 70);
 
-      // Footer signature line
-      doc.setDrawColor(200); doc.line(leftMargin, doc.internal.pageSize.getHeight() - 120, pageWidth - rightMargin, doc.internal.pageSize.getHeight() - 120);
-      doc.setFontSize(14); doc.text('Signature client', leftMargin, doc.internal.pageSize.getHeight() - 100);
+     
 
       // S ave / open
       doc.save((dataObj.numDevis||'devis') + '.pdf');
@@ -398,19 +405,20 @@ doc.text('Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
       await generatePDF(data);
     });
 
-    function collectForm(){
-      const type = document.querySelector('input[name="typeClient"]:checked').value;
-      const nom = $('nomClient').value;
-      const tel = $('telClient').value;
-      const marque = $('marque').value;
-      const matricule = $('matricule').value;
-      const numDevis = $('numDevis').value || 'DV-XXXX';
-      const travail = $('travailInfo').value;
-      const tva = Number($('tva').value)||0;
-      const items = [...tbody.querySelectorAll('tr')].map(r=>({des:r.querySelector('.des').value, qty:Number(r.querySelector('.qty').value)||0, pu:Number(r.querySelector('.pu').value)||0})).filter(i=>i.des||i.qty||i.pu);
-      const totals = recalc();
-      return {type,nom,tel,marque,matricule,numDevis,travail,tva,items,totalHT:totals.total,montantTVA:totals.montantTVA,totalTTC:totals.ttc};
-    }
+   function collectForm(){
+  const type = document.querySelector('input[name="typeClient"]:checked').value;
+  const nom = $('nomClient').value;
+  const tel = $('telClient').value;
+  const marque = $('marque').value;
+  const matricule = $('matricule').value;
+  const numDevis = $('numDevis').value || 'DV-XXXX';
+  const dateDevis = $('dateDevis').value;
+  const travail = $('travailInfo').value;
+  const tva = Number($('tva').value)||0;
+  const items = [...tbody.querySelectorAll('tr')].map(r=>({des:r.querySelector('.des').value, qty:Number(r.querySelector('.qty').value)||0, pu:Number(r.querySelector('.pu').value)||0})).filter(i=>i.des||i.qty||i.pu);
+  const totals = recalc();
+  return {type,nom,tel,marque,matricule,numDevis,dateDevis,travail,tva,items,totalHT:totals.total,montantTVA:totals.montantTVA,totalTTC:totals.ttc};
+}
 
     // Save devis to localStorage list
     function loadDevisList(){
@@ -597,11 +605,14 @@ function regenerateDevis(devisNumber) {
         if (devis) {
             // Ici, vous pouvez appeler votre fonction generatePDF avec les données du devis
             alert(`Regénération du devis ${devisNumber} pour ${devis.clientName}`);
-            // generatePDF(devis); // À adapter selon votre implémentation
+            // generatePDF(devis); // À adapter  n votre implémentation
         }
     }
 }
-    
+    // Initialiser la date avec la date du jour
+const today = new Date();
+const formattedDate = today.toISOString().substr(0, 10);
+$('dateDevis').value = formattedDate;
     // init
     addRow(); renderDevisList();
     
