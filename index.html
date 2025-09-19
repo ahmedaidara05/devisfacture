@@ -131,7 +131,7 @@
     <header>
       <div class="header-inner">
         <div>
-          <h1 style="margin:0;font-size:20px">Devis - ETS NIASS & FRÈRE</h1>
+          <h1 style="margin:0;font-size:20px">Remplir uniquement Num. DEV , NOM , MARQUE , MATRICULE et le Tableau</h1>
          </div>
         <div class="logo" title="Logo">
           <img src="https://i.postimg.cc/wxRckfnt/3.png" alt="logo">
@@ -146,6 +146,8 @@
       <div class="left">
         <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
           <div>
+                      <h1 style="margin:0;font-size:20px">Devis - ETS NIASS & FRÈRE</h1>
+
             <label>Type</label>
             <div class="radio-group">
               <label><input type="radio" name="typeClient" value="Client" checked> Client</label>
@@ -343,18 +345,18 @@
       doc.text('77 47047 42 / 33 825 32 42', pageWidth - rightMargin - 10, 168, {align:'right'});
       doc.text('Rond point Niary Tali, en face Brioche Dorée', pageWidth - rightMargin - 10, 182, {align:'right'});
 
-      // Client info top-left
-      doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
-      doc.setFontSize(14); doc.setFont('helvetica','normal');
-      doc.text((dataObj.type||'') + ' : ' + (dataObj.nom||''), leftMargin, 110);
-      doc.text('Tél: ' + (dataObj.tel||''), leftMargin, 125);
-      doc.text('Info Véhicule: ' + (dataObj.marque||'') + '  ' + (dataObj.matricule||''), leftMargin, 140);
+   // Client info top-left - Version simplifiée
+doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
+doc.setFontSize(14); doc.setFont('helvetica','normal');
+doc.text('Nom: ' + (dataObj.nom||''), leftMargin, 110);
+doc.text('Marque: ' + (dataObj.marque||''), leftMargin, 125);
+doc.text('Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
 
       // Work description
       doc.setDrawColor(220); doc.setLineWidth(0.5);
-      doc.text('Description:', leftMargin, 170);
+      doc.text(' ', leftMargin, 170);
       doc.setFontSize(11);
-      const split = doc.splitTextToSize(dataObj.travail || '-', pageWidth - leftMargin - rightMargin);
+      const split = doc.splitTextToSize(dataObj.travail || ' ', pageWidth - leftMargin - rightMargin);
       doc.text(split, leftMargin, 185);
 
       // Items table
