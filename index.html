@@ -131,7 +131,7 @@
     <header>
       <div class="header-inner">
         <div>
-          <h1 style="margin:0;font-size:20px">Remplir uniquement Num. DEV , NOM , MARQUE , MATRICULE et le Tableau</h1>
+          <h1 style="margin:0;font-size:20px">DEVIS</h1>
          </div>
         <div class="logo" title="Logo">
           <img src="https://i.postimg.cc/wxRckfnt/3.png" alt="logo">
@@ -146,7 +146,7 @@
       <div class="left">
         <div style="display:flex;gap:12px;align-items:center;justify-content:space-between">
           <div>
-                      <h1 style="margin:0;font-size:20px">Devis - ETS NIASS & FRÈRE</h1>
+                      <h1 style="margin:0;font-size:20px"> ETS NIASS & FRÈRE</h1>
 
             <label>Type</label>
             <div class="radio-group">
@@ -162,18 +162,18 @@
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
           <div>
-            <label>Nom (Client / Entreprise)</label>
+            <label>Nom</label>
             <input type="text" id="nomClient" placeholder=" ">
           </div>
           <div>
-            <label>Téléphone</label>
+            <label>Rien mettre ici</label>
             <input type="text" id="telClient" placeholder=" ">
           </div>
         </div>
 
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px">
           <div>
-            <label>Marque du véhicule</label>
+            <label>Marque</label>
             <input type="text" id="marque" placeholder=" ">
           </div>
           <div>
@@ -183,7 +183,7 @@
         </div>
 
         <div style="margin-top:12px">
-          <label>Description / informations</label>
+          <label>Rien mettre ici</label>
           <textarea id="travailInfo" rows="2" placeholder=" "></textarea>
         </div>
 
@@ -373,11 +373,11 @@ doc.text('Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
       });
 
       // Totals under table
-      const finalY = doc.lastAutoTable.finalY + 14;
+      const finalY = doc.lastAutoTable.finalY + 40;
       doc.setFontSize(15);
       doc.text('Total HT : ' + dataObj.totalHT.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY, {align:'right'});
-      doc.text('TVA ('+dataObj.tva+'%) : ' + dataObj.montantTVA.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 14, {align:'right'});
-      doc.setFont('helvetica','bold'); doc.text('Total TTC : ' + dataObj.totalTTC.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 32, {align:'right'});
+      doc.text('TVA ('+dataObj.tva+'%) : ' + dataObj.montantTVA.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 20, {align:'right'});
+      doc.setFont('helvetica','bold'); doc.text('Total TTC : ' + dataObj.totalTTC.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 43, {align:'right'});
 
       // Montant en lettre
       const enLettre = numberToWordsFr(Math.round(dataObj.totalTTC));
@@ -388,7 +388,7 @@ doc.text('Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
       doc.setDrawColor(200); doc.line(leftMargin, doc.internal.pageSize.getHeight() - 120, pageWidth - rightMargin, doc.internal.pageSize.getHeight() - 120);
       doc.setFontSize(14); doc.text('Signature client', leftMargin, doc.internal.pageSize.getHeight() - 100);
 
-      // Save / open
+      // S ave / open
       doc.save((dataObj.numDevis||'devis') + '.pdf');
     }
 
