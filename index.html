@@ -124,6 +124,132 @@
         font-size: 14px; /* Évite le zoom sur iOS */
     }
 }
+    /* ===== CORRECTION DU DÉFILEMENT HORIZONTAL ===== */
+@media (max-width: 768px) {
+  body, html {
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 100%;
+    padding: 10px;
+    margin: 0;
+    box-sizing: border-box;
+  }
+  
+  header {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .header-inner {
+    flex-direction: column;
+    width: 100%;
+  }
+  
+  form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .left, .right {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Correction spécifique pour les éléments qui dépassent */
+  .logo {
+    max-width: 100%;
+  }
+  
+  .logo img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* Forcer le tableau à s'adapter */
+  .table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  table {
+    width: 100%;
+    min-width: 100%;
+    table-layout: fixed;
+  }
+  
+  th, td {
+    word-wrap: break-word;
+  }
+  
+  /* Ajustements des inputs */
+  input[type="text"], 
+  input[type="number"], 
+  select, 
+  textarea {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+  
+  /* Correction des flexbox qui dépassent */
+  .left > div[style*="display:flex"] {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+  
+  .left > div[style*="display:grid"] {
+    grid-template-columns: 1fr;
+    width: 100%;
+  }
+  
+  /* Elements absolus qui pourraient dépasser */
+  .company-info {
+    position: relative;
+    width: 100%;
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .devis-date-header {
+    position: relative;
+    top: 0;
+    left: 0;
+    margin: 10px 0;
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Correction supplémentaire pour très petits écrans */
+@media (max-width: 480px) {
+  table {
+    font-size: 12px;
+  }
+  
+  th, td {
+    padding: 6px 4px;
+  }
+  
+  .btn {
+    padding: 10px;
+    font-size: 13px;
+  }
+  
+  input[type="text"], 
+  input[type="number"], 
+  select, 
+  textarea {
+    font-size: 14px;
+    padding: 10px;
+  }
+}
+
   </style>
 </head>
 <body>
