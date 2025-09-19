@@ -462,16 +462,16 @@
       const leftMargin = 40; const rightMargin = 40; const pageWidth = doc.internal.pageSize.getWidth();
 
       // Header: logo at top-right (square)
-      const img = new Image(); img.crossOrigin = 'anonymous'; img.src = 'https://i.postimg.cc/wxRckfnt/3.png';
+      const img = new Image(); img.crossOrigin = 'anonymous'; img.src = 'https://i.postimg.cc/85RsLkrb/LOGO.png';
       await new Promise(res=>{ img.onload = res; img.onerror = res; });
-      const logoSize = 110; doc.addImage(img, 'JPEG', pageWidth - rightMargin - logoSize, 40, logoSize, logoSize);
+      const logoSize = 130; doc.addImage(img, 'JPEG', pageWidth - rightMargin - logoSize, 40, logoSize, logoSize);
 
       // Company info top-right under logo
-      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.text('ETS NIASS & FRÈRE', pageWidth - rightMargin - 10, 140, {align:'right'});
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.text(' ', pageWidth - rightMargin - 10, 140, {align:'right'});
       doc.setFontSize(10); doc.setFont('helvetica','normal');
-      doc.text('VENTE, LOCATION ET RÉPARATION DE VÉHICULES', pageWidth - rightMargin - 10, 154, {align:'right'});
-      doc.text('77 47047 42 / 33 825 32 42', pageWidth - rightMargin - 10, 168, {align:'right'});
-      doc.text('Rond point Niary Tali, en face Brioche Dorée', pageWidth - rightMargin - 10, 182, {align:'right'});
+      doc.text('  ', pageWidth - rightMargin - 10, 154, {align:'right'});
+      doc.text('  ', pageWidth - rightMargin - 10, 168, {align:'right'});
+      doc.text(' ', pageWidth - rightMargin - 10, 182, {align:'right'});
 // Date en haut à gauche
 if(dataObj.dateDevis) {
   const date = new Date(dataObj.dateDevis);
