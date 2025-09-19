@@ -748,5 +748,68 @@ $('dateDevis').value = formattedDate;
     addRow(); renderDevisList();
     
   </script>
+  <script>
+  // Enregistrement du Service Worker
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('Service Worker enregistré avec succès:', registration);
+        })
+        .catch(error => {
+          console.log('Échec de l\'enregistrement du Service Worker:', error);
+        });
+    });
+  }
+
+  // Gestion de l'installation de l'application
+  let deferredPrompt;
+  const installButton = document.createElement('button');
+  
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Empêche le navigateur de montrer automatiquement l'invite d'installation
+    e.preventDefault();
+    // Stocke l'événement pour qu'il puisse être déclenché plus tard
+    deferredPrompt = e;
+    
+    // Affiche un bouton d'installation personnalisé
+    installButton.textContent = 'Installer l\'application';
+    installButton.style.cssText = `
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: linear-gradient(90deg, #0f4ac8, #1a67ff);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      z-index: 1000;
+      box-shadow: 0 4px 12px rgba(15, 74, 200, 0.3);
+    `;
+    
+    installButton.addEventListener('click', async () => {
+      // Cache le bouton d'installation
+      installButton.style.display = 'none';
+      // Montre l'invite d'installation
+      deferredPrompt.prompt();
+      // Attend que l'utilisateur réponde à l'invite
+      const { outcome } = await deferredPrompt.userChoice;
+      console.log(`User response to the install prompt: ${outcome}`);
+      // On n'a plus besoin de l'événement
+      deferredPrompt = null;
+    });
+    
+    document.body.appendChild(installButton);
+  });
+
+  window.addEventListener('appinstalled', () => {
+    // Masque le bouton d'installation
+    if (installButton.parentNode) {
+      installButton.parentNode.removeChild(installButton);
+    }
+    console.log('Application installée avec succès');
+  });
+</script>
 </body>
 </html>
