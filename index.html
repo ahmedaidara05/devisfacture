@@ -47,6 +47,18 @@
 
     footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
 
+    /* Numéro de devis stylisé */
+    .devis-number-display {
+      padding: 10px;
+      background: linear-gradient(90deg, var(--blue1), var(--blue2));
+      color: white;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      font-size: 16px;
+      box-shadow: 0 2px 8px rgba(15, 74, 200, 0.3);
+    }
+
     /* responsive */
     @media(max-width:980px){form{grid-template-columns:1fr} .company-info{position:static;text-align:left;margin-top:12px}}
     .devis-date-header {
@@ -263,9 +275,6 @@
           <img src="https://i.postimg.cc/wxRckfnt/3.png" alt="logo">
         </div>
       </div>
-
-     
-
     </header>
 
     <form id="devisForm">
@@ -280,7 +289,7 @@
   </div>
   <div style="min-width:200px">
     <label>Numéro Devis</label>
-    <input type="text" id="numDevis" placeholder=" " required>
+    <div class="devis-number-display" id="numDevisDisplay">Chargement...</div>
   </div>
   <div style="min-width:200px">
     <label>Date du devis</label>
@@ -294,7 +303,7 @@
             <input type="text" id="nomClient" placeholder=" ">
           </div>
           <div>
-            <label>Rien mettre ici</label>
+            <label>Téléphone</label>
             <input type="text" id="telClient" placeholder=" ">
           </div>
         </div>
@@ -311,7 +320,7 @@
         </div>
 
         <div style="margin-top:12px">
-          <label>Rien mettre ici</label>
+          <label>Description des travaux</label>
           <textarea id="travailInfo" rows="2" placeholder=" "></textarea>
         </div>
 
@@ -342,16 +351,15 @@
         </div>
 
         <div style="margin-top:12px;display:flex;gap:8px">
-          <button type="button" class="btn btn-primary" id="generatePdf">Générer</button>
-          <button type="button" class="btn" id="saveDevis"> Sauvegarder</button>
-          <button type="button" class="btn" id="clearForm">Effacer</button>
+          <button type="button" class="btn btn-primary" id="generatePdf">Générer PDF</button>
+          <button type="button" class="btn" id="saveDevis">Sauvegarder</button>
+          <button type="button" class="btn" id="clearForm">Nouveau Devis</button>
         </div>
       </div>
 
       <div class="right">
         <h3 style="margin-top:0">Liste des devis</h3>
         <div class="devis-list" id="devisList"></div>
-       
       </div>
     </form>
 
@@ -366,6 +374,59 @@
     // Utils
     const $ = id => document.getElementById(id);
     const qs = sel => document.querySelector(sel);
+
+    // Système de numérotation automatique des devis
+    function generateDevisNumber() {
+      // Récupérer le compteur actuel depuis localStorage
+      const currentYear = new Date().getFullYear();
+      const counterKey = `devisCounter_${currentYear}`;
+      const usedNumbersKey = `usedDevisNumbers_${currentYear}`;
+      
+      // Récupérer les numéros déjà utilisés
+      let usedNumbers = localStorage.getItem(usedNumbersKey);
+      usedNumbers = usedNumbers ? JSON.parse(usedNumbers) : [];
+      
+      let counter = localStorage.getItem(counterKey);
+      if (!counter) {
+        // Si pas de compteur pour cette année, initialiser à 1
+        counter = 1;
+      } else {
+        // Sinon incrémenter le compteur
+        counter = parseInt(counter) + 1;
+      }
+      
+      // Formater le numéro avec 4 chiffres (ex: DV-2024-0001)
+      let formattedNumber = `DV-${currentYear}-${counter.toString().padStart(4, '0')}`;
+      
+      // Vérifier si le numéro a déjà été utilisé
+      while (usedNumbers.includes(formattedNumber)) {
+        counter++;
+        formattedNumber = `DV-${currentYear}-${counter.toString().padStart(4, '0')}`;
+      }
+      
+      // Ajouter le numéro à la liste des numéros utilisés
+      usedNumbers.push(formattedNumber);
+      localStorage.setItem(usedNumbersKey, JSON.stringify(usedNumbers));
+      
+      // Sauvegarder le nouveau compteur
+      localStorage.setItem(counterKey, counter);
+      
+      return formattedNumber;
+    }
+
+    // Initialiser le numéro de devis
+    function initializeDevisNumber() {
+      const devisNumber = generateDevisNumber();
+      $('numDevisDisplay').textContent = devisNumber;
+      return devisNumber;
+    }
+
+    // Générer un nouveau numéro sans sauvegarder
+    function generateNewDevisNumber() {
+      const devisNumber = generateDevisNumber();
+      $('numDevisDisplay').textContent = devisNumber;
+      return devisNumber;
+    }
 
     // number to words (français) - simple implementation pour montants entiers
     function numberToWordsFr(n){
@@ -452,7 +513,18 @@
     document.getElementById('tva').addEventListener('input', recalc);
 
     document.getElementById('clearForm').addEventListener('click', ()=>{
-      if(confirm('Réinitialiser le formulaire ?')){ document.getElementById('devisForm').reset(); tbody.innerHTML=''; addRow(); recalc(); }
+      if(confirm('Créer un nouveau devis ? Les données non sauvegardées seront perdues.')){ 
+        document.getElementById('devisForm').reset(); 
+        tbody.innerHTML=''; 
+        addRow(); 
+        recalc(); 
+        // Générer un nouveau numéro de devis
+        generateNewDevisNumber();
+        // Réinitialiser la date à aujourd'hui
+        const today = new Date();
+        const formattedDate = today.toISOString().substr(0, 10);
+        $('dateDevis').value = formattedDate;
+      }
     });
 
     // PDF generation with jsPDF + autotable
@@ -467,67 +539,85 @@
       const logoSize = 130; doc.addImage(img, 'JPEG', pageWidth - rightMargin - logoSize, 40, logoSize, logoSize);
 
       // Company info top-right under logo
-      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.text(' ', pageWidth - rightMargin - 10, 140, {align:'right'});
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); 
+      doc.text(' ', pageWidth - rightMargin - 10, 140, {align:'right'});
       doc.setFontSize(10); doc.setFont('helvetica','normal');
-      doc.text('  ', pageWidth - rightMargin - 10, 154, {align:'right'});
-      doc.text('  ', pageWidth - rightMargin - 10, 168, {align:'right'});
+      doc.text('Tel: +221 70 878 19 89 / 77 470 47 42', pageWidth - rightMargin - 10, 154, {align:'right'});
+      doc.text('Email: etsiniasseetfreres@yahoo.com', pageWidth - rightMargin - 10, 168, {align:'right'});
       doc.text(' ', pageWidth - rightMargin - 10, 182, {align:'right'});
-// Date en haut à gauche
-if(dataObj.dateDevis) {
-  const date = new Date(dataObj.dateDevis);
-  const formattedDate = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-  doc.setFontSize(11);
-  doc.setFont('helvetica','normal');
-  doc.text('Date: ' + formattedDate, leftMargin, 70);
-}
-   // Client info top-left - Version simplifiée
-doc.setFontSize(16); doc.setFont('helvetica','bold'); doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
-doc.setFontSize(14); doc.setFont('helvetica','normal');
-doc.text('Nom: ' + (dataObj.nom||''), leftMargin, 110);
-doc.text('Marque: ' + (dataObj.marque||''), leftMargin, 125);
-doc.text('Matricule: ' + (dataObj.matricule||''), leftMargin, 140);
+      
+      // Date en haut à gauche
+      if(dataObj.dateDevis) {
+        const date = new Date(dataObj.dateDevis);
+        const formattedDate = date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        doc.setFontSize(11);
+        doc.setFont('helvetica','normal');
+        doc.text('Date: ' + formattedDate, leftMargin, 70);
+      }
+      
+      // Client info top-left
+      doc.setFontSize(16); doc.setFont('helvetica','bold'); 
+      doc.text('Devis: '+(dataObj.numDevis||''), leftMargin, 90);
+      doc.setFontSize(14); doc.setFont('helvetica','normal');
+      if(dataObj.nom) doc.text('Nom: ' + dataObj.nom, leftMargin, 110);
+      if(dataObj.tel) doc.text('Téléphone: ' + dataObj.tel, leftMargin, 125);
+      if(dataObj.marque) doc.text('Marque: ' + dataObj.marque, leftMargin, 140);
+      if(dataObj.matricule) doc.text('Matricule: ' + dataObj.matricule, leftMargin, 155);
 
       // Work description
-      doc.setDrawColor(220); doc.setLineWidth(0.5);
-      doc.text(' ', leftMargin, 170);
-      doc.setFontSize(11);
-      const split = doc.splitTextToSize(dataObj.travail || ' ', pageWidth - leftMargin - rightMargin);
-      doc.text(split, leftMargin, 185);
+      if(dataObj.travail) {
+        doc.setDrawColor(220); doc.setLineWidth(0.5);
+        doc.text('Description des travaux:', leftMargin, 180);
+        doc.setFontSize(11);
+        const split = doc.splitTextToSize(dataObj.travail, pageWidth - leftMargin - rightMargin);
+        doc.text(split, leftMargin, 195);
+      }
 
       // Items table
-      const startY = 205 + split.length*12;
+      const startY = dataObj.travail ? 205 + split.length*12 : 180;
       const columns = [
         {header:'Désignation',dataKey:'des'},
         {header:'Quantité',dataKey:'qty'},
         {header:'Prix unitaire',dataKey:'pu'},
         {header:'Montant',dataKey:'mont'}
       ];
-      doc.autoTable({
-        startY, head:[columns.map(c=>c.header)], body: dataObj.items.map(it=>[it.des, it.qty, Number(it.pu).toFixed(0), Number(it.qty*it.pu||0).toFixed(0)]),
-        styles:{fontSize:13}, theme:'striped', headStyles:{fillColor:[15,74,200]}, margin:{left:leftMargin,right:rightMargin}
-      });
+      
+      if(dataObj.items && dataObj.items.length > 0) {
+        doc.autoTable({
+          startY, 
+          head:[columns.map(c=>c.header)], 
+          body: dataObj.items.map(it=>[it.des, it.qty, Number(it.pu).toFixed(0) + ' FCFA', Number(it.qty*it.pu||0).toFixed(0) + ' FCFA']),
+          styles:{fontSize:13}, 
+          theme:'striped', 
+          headStyles:{fillColor:[15,74,200]}, 
+          margin:{left:leftMargin,right:rightMargin}
+        });
+      }
 
       // Totals under table
-      const finalY = doc.lastAutoTable.finalY + 40;
+      const finalY = dataObj.items && dataObj.items.length > 0 ? doc.lastAutoTable.finalY + 40 : startY + 40;
       doc.setFontSize(15);
       doc.text('Total HT : ' + dataObj.totalHT.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY, {align:'right'});
       doc.text('TVA ('+dataObj.tva+'%) : ' + dataObj.montantTVA.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 20, {align:'right'});
-      doc.setFont('helvetica','bold'); doc.text('Total TTC : ' + dataObj.totalTTC.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 43, {align:'right'});
+      doc.setFont('helvetica','bold'); 
+      doc.text('Total TTC : ' + dataObj.totalTTC.toFixed(0) + ' FCFA', pageWidth - rightMargin - 10, finalY + 43, {align:'right'});
 
       // Montant en lettre
       const enLettre = numberToWordsFr(Math.round(dataObj.totalTTC));
       doc.setFont('helvetica','normal'); doc.setFontSize(10);
       doc.text('Arrêté le présent devis à la somme de ' + enLettre + ' FRANCS CFA.', leftMargin, finalY + 70);
 
-     // Infos entreprise en bas centré
-const footerText = "Tel: +221 70 878 19 89/77 470 47 42/Email: etsiniasseetfreres@yahoo.com/CPTE: CORISBANK SN213 01018 005058724101 42/NINEA: 004119964/RCCM: SN THS 2009.A.2320";
-doc.setFontSize(7);
-doc.setFont('helvetica', 'italic');
-doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 30, { align: 'center' });
+      // Infos entreprise en bas centré
+      const footerText = "Tel: +221 70 878 19 89/77 470 47 42/Email: etsiniasseetfreres@yahoo.com/CPTE: CORISBANK SN213 01018 005058724101 42/NINEA: 004119964/RCCM: SN THS 2009.A.2320";
+      doc.setFontSize(7);
+      doc.setFont('helvetica', 'italic');
+      doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 30, { align: 'center' });
 
-
-      // S ave / open
+      // Save / open
       doc.save((dataObj.numDevis||'devis') + '.pdf');
+      
+      // Générer un nouveau numéro après création du PDF
+      generateNewDevisNumber();
     }
 
     // Build data and call generate
@@ -536,20 +626,20 @@ doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 30, { al
       await generatePDF(data);
     });
 
-   function collectForm(){
-  const type = document.querySelector('input[name="typeClient"]:checked').value;
-  const nom = $('nomClient').value;
-  const tel = $('telClient').value;
-  const marque = $('marque').value;
-  const matricule = $('matricule').value;
-  const numDevis = $('numDevis').value || 'DV-XXXX';
-  const dateDevis = $('dateDevis').value;
-  const travail = $('travailInfo').value;
-  const tva = Number($('tva').value)||0;
-  const items = [...tbody.querySelectorAll('tr')].map(r=>({des:r.querySelector('.des').value, qty:Number(r.querySelector('.qty').value)||0, pu:Number(r.querySelector('.pu').value)||0})).filter(i=>i.des||i.qty||i.pu);
-  const totals = recalc();
-  return {type,nom,tel,marque,matricule,numDevis,dateDevis,travail,tva,items,totalHT:totals.total,montantTVA:totals.montantTVA,totalTTC:totals.ttc};
-}
+    function collectForm(){
+      const type = document.querySelector('input[name="typeClient"]:checked').value;
+      const nom = $('nomClient').value;
+      const tel = $('telClient').value;
+      const marque = $('marque').value;
+      const matricule = $('matricule').value;
+      const numDevis = $('numDevisDisplay').textContent || 'DV-XXXX';
+      const dateDevis = $('dateDevis').value;
+      const travail = $('travailInfo').value;
+      const tva = Number($('tva').value)||0;
+      const items = [...tbody.querySelectorAll('tr')].map(r=>({des:r.querySelector('.des').value, qty:Number(r.querySelector('.qty').value)||0, pu:Number(r.querySelector('.pu').value)||0}));
+      const totals = recalc();
+      return {type,nom,tel,marque,matricule,numDevis,dateDevis,travail,tva,items,totalHT:totals.total,montantTVA:totals.montantTVA,totalTTC:totals.ttc};
+    }
 
     // Save devis to localStorage list
     function loadDevisList(){
@@ -583,7 +673,7 @@ doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 30, { al
 
     function populateForm(d){
       document.querySelector(`input[name="typeClient"][value="${d.type}"]`).checked = true;
-      $('numDevis').value = d.numDevis || '';
+      $('numDevisDisplay').textContent = d.numDevis || '';
       $('nomClient').value = d.nom || '';
       $('telClient').value = d.tel || '';
       $('marque').value = d.marque || '';
@@ -602,214 +692,20 @@ doc.text(footerText, pageWidth / 2, doc.internal.pageSize.getHeight() - 30, { al
       else list.unshift(data);
       saveDevisList(list);
       alert('Devis sauvegardé ✔️');
+      // Générer un nouveau numéro après sauvegarde
+      generateNewDevisNumber();
     });
-// Afficher la date actuelle
-const now = new Date();
-const options = { day: '2-digit', month: '2-digit', year: 'numeric' };
-document.getElementById('currentDate').textContent = now.toLocaleDateString('fr-FR', options);
-    
-    // Charger les devis depuis le localStorage
-function loadSavedDevis() {
-    const savedDevis = localStorage.getItem('devisHistory');
-    if (savedDevis) {
-        const devisList = JSON.parse(savedDevis);
-        const historyTable = document.getElementById('devisHistory');
-        
-        // Vider le tableau avant d'ajouter les éléments
-        historyTable.innerHTML = '';
-        
-        // Ajouter chaque devis au tableau
-        devisList.forEach(devis => {
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.devisNumber}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.clientName}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.vehicleBrand}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${devis.totalTTC.toFixed(2)} FCFA</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    <button class="edit-devis text-blue-600 hover:text-blue-800 mr-2">
-                        <i data-feather="edit"></i>
-                    </button>
-                    <button class="delete-devis text-red-600 hover:text-red-800 mr-2">
-                        <i data-feather="trash-2"></i>
-                    </button>
-                    <button class="regenerate-devis text-green-600 hover:text-green-800">
-                        <i data-feather="file-text"></i>
-                    </button>
-                </td>
-            `;
-            historyTable.appendChild(newRow);
-        });
-        
-        feather.replace();
-    }
-}
-    
-    // Add to history
-function addToHistory(devisNumber, clientName, vehicleBrand, totalTTC) {
-    // Récupérer les devis existants
-    const existingDevis = localStorage.getItem('devisHistory');
-    let devisList = existingDevis ? JSON.parse(existingDevis) : [];
-    
-    // Ajouter le nouveau devis
-    devisList.push({
-        devisNumber,
-        clientName,
-        vehicleBrand,
-        totalTTC,
-        date: new Date().toISOString()
-    });
-    
-    // Sauvegarder dans le localStorage
-    localStorage.setItem('devisHistory', JSON.stringify(devisList));
-    
-    // Mettre à jour l'affichage
-    loadSavedDevis();
-}
-    // Gérer les actions sur les devis (éditer, supprimer, regénérer)
-function setupDevisActions() {
-    document.addEventListener('click', function(e) {
-        if (e.target.closest('.edit-devis')) {
-            const row = e.target.closest('tr');
-            const devisNumber = row.cells[0].textContent;
-            editDevis(devisNumber);
-        }
-        
-        if (e.target.closest('.delete-devis')) {
-            const row = e.target.closest('tr');
-            const devisNumber = row.cells[0].textContent;
-            deleteDevis(devisNumber);
-        }
-        
-        if (e.target.closest('.regenerate-devis')) {
-            const row = e.target.closest('tr');
-            const devisNumber = row.cells[0].textContent;
-            regenerateDevis(devisNumber);
-        }
-    });
-}
 
-// Éditer un devis
-function editDevis(devisNumber) {
-    const savedDevis = localStorage.getItem('devisHistory');
-    if (savedDevis) {
-        const devisList = JSON.parse(savedDevis);
-        const devis = devisList.find(d => d.devisNumber === devisNumber);
-        
-        if (devis) {
-            // Pré-remplir le formulaire avec les données du devis
-            document.getElementById('devisNumber').value = devis.devisNumber;
-            document.getElementById('clientName').value = devis.clientName;
-            document.getElementById('vehicleBrand').value = devis.vehicleBrand;
-            
-            // Faire défiler jusqu'au formulaire
-            document.querySelector('.client-info').scrollIntoView({ behavior: 'smooth' });
-            
-            alert(`Devis ${devisNumber} chargé. Complétez les autres champs et générez à nouveau.`);
-        }
-    }
-}
-
-// Supprimer un devis
-function deleteDevis(devisNumber) {
-    if (confirm(`Êtes-vous sûr de vouloir supprimer le devis ${devisNumber} ?`)) {
-        const savedDevis = localStorage.getItem('devisHistory');
-        if (savedDevis) {
-            let devisList = JSON.parse(savedDevis);
-            devisList = devisList.filter(d => d.devisNumber !== devisNumber);
-            
-            localStorage.setItem('devisHistory', JSON.stringify(devisList));
-            loadSavedDevis();
-            
-            alert(`Devis ${devisNumber} supprimé.`);
-        }
-    }
-}
-
-// Regénérer un devis
-function regenerateDevis(devisNumber) {
-    const savedDevis = localStorage.getItem('devisHistory');
-    if (savedDevis) {
-        const devisList = JSON.parse(savedDevis);
-        const devis = devisList.find(d => d.devisNumber === devisNumber);
-        
-        if (devis) {
-            // Ici, vous pouvez appeler votre fonction generatePDF avec les données du devis
-            alert(`Regénération du devis ${devisNumber} pour ${devis.clientName}`);
-            // generatePDF(devis); // À adapter  n votre implémentation
-        }
-    }
-}
     // Initialiser la date avec la date du jour
-const today = new Date();
-const formattedDate = today.toISOString().substr(0, 10);
-$('dateDevis').value = formattedDate;
+    const today = new Date();
+    const formattedDate = today.toISOString().substr(0, 10);
+    $('dateDevis').value = formattedDate;
+    
     // init
-    addRow(); renderDevisList();
+    addRow(); 
+    renderDevisList();
+    initializeDevisNumber();
     
   </script>
-  <script>
-  // Enregistrement du Service Worker
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(registration => {
-          console.log('Service Worker enregistré avec succès:', registration);
-        })
-        .catch(error => {
-          console.log('Échec de l\'enregistrement du Service Worker:', error);
-        });
-    });
-  }
-
-  // Gestion de l'installation de l'application
-  let deferredPrompt;
-  const installButton = document.createElement('button');
-  
-  window.addEventListener('beforeinstallprompt', (e) => {
-    // Empêche le navigateur de montrer automatiquement l'invite d'installation
-    e.preventDefault();
-    // Stocke l'événement pour qu'il puisse être déclenché plus tard
-    deferredPrompt = e;
-    
-    // Affiche un bouton d'installation personnalisé
-    installButton.textContent = 'Installer l\'application';
-    installButton.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      padding: 10px 20px;
-      background: linear-gradient(90deg, #0f4ac8, #1a67ff);
-      color: white;
-      border: none;
-      border-radius: 20px;
-      cursor: pointer;
-      z-index: 1000;
-      box-shadow: 0 4px 12px rgba(15, 74, 200, 0.3);
-    `;
-    
-    installButton.addEventListener('click', async () => {
-      // Cache le bouton d'installation
-      installButton.style.display = 'none';
-      // Montre l'invite d'installation
-      deferredPrompt.prompt();
-      // Attend que l'utilisateur réponde à l'invite
-      const { outcome } = await deferredPrompt.userChoice;
-      console.log(`User response to the install prompt: ${outcome}`);
-      // On n'a plus besoin de l'événement
-      deferredPrompt = null;
-    });
-    
-    document.body.appendChild(installButton);
-  });
-
-  window.addEventListener('appinstalled', () => {
-    // Masque le bouton d'installation
-    if (installButton.parentNode) {
-      installButton.parentNode.removeChild(installButton);
-    }
-    console.log('Application installée avec succès');
-  });
-</script>
 </body>
 </html>
